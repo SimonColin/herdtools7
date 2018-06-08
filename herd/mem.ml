@@ -106,11 +106,6 @@ S.M.VC.cnstrnt list -> (S.E.event_structure * S.rfmap * S.M.VC.cnstrnts) option
   val check_rfmap :
     S.E.event_structure -> S.read_from S.RFMap.t -> bool
 
-  val fold_mem_finals :
-    S.test ->
-    S.E.event_structure ->
-    S.read_from S.RFMap.t -> (S.concrete -> 'a -> 'a) -> 'a -> 'a
-
   val when_unsolved :
     ((int * S.A.instruction) list S.A.LabelMap.t,
      (int * S.A.instruction S.A.kpseudo list) list,
@@ -129,6 +124,9 @@ S.M.VC.cnstrnt list -> (S.E.event_structure * S.rfmap * S.M.VC.cnstrnts) option
 
   val get_loc :
     S.E.event -> S.E.A.location
+
+  val make_atomic_load_store :
+    S.E.event_structure -> S.E.EventRel.t
 
 end
 
