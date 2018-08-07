@@ -32,6 +32,7 @@ module type Config = sig
   include Sem.Config
 
   val statelessrc11 : bool
+  val statelesscoherence : bool
 end
 
 module Top :

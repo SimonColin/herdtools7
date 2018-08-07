@@ -261,6 +261,9 @@ let options = [
   "-statelessrc11",
   Arg.Bool (fun b -> if b then statelessrc11 := true),
   "<bool> enable stateless RC11 model checking, use with -variant normw, SC check can be skipped";
+  "-statelesscoherence",
+  Arg.Bool (fun b -> if b then statelesscoherence := true),
+  "<bool> enable stateless coherent execution candidate generation";
 
 (************************)
 (* Control dot pictures *)
@@ -500,6 +503,7 @@ let () =
     let throughflag = !throughflag
 
     let statelessrc11 = !statelessrc11
+    let statelesscoherence = !statelesscoherence
 
     let check_name = Check.ok
     let check_rename = Check.rename_opt

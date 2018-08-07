@@ -34,6 +34,7 @@ module type Config = sig
   include Mem.Config
 
   val statelessrc11 : bool
+  val statelesscoherence : bool
   val skipchecks : StringSet.t
 end
 
@@ -359,10 +360,14 @@ module Make(O:Config)(M:XXXMem.S) =
           check_test
             conc kfail (model_kont ochan test cstr) in
       let c =
-        if O.statelessrc11
+        if O.statelessrc11 
         then let module SL = Slrc11.Make(struct include MC let skipchecks = O.skipchecks end) in
              SL.check_event_structure test rfms kfail (fun _ c -> c) (model_kont ochan test cstr) start
         else
+          if O.statelesscoherence
+          then let module SL = Slcoh.Make(struct include MC let skipchecks = O.skipchecks end) in
+               SL.check_event_structure test rfms kfail (fun _ c -> c) (model_kont ochan test cstr) start
+          else
         try iter_rfms test rfms call_model (fun c -> c) start
         with
         | Over c -> c

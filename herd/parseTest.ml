@@ -33,6 +33,7 @@ module type Config = sig
   include Sem.Config
 
   val statelessrc11 : bool
+  val statelesscoherence : bool
 end
 
 (**********************)
@@ -134,6 +135,7 @@ module Top (Conf:Config) = struct
         let variant = Conf.variant
 
         let statelessrc11 = Conf.statelessrc11
+        let statelesscoherence = Conf.statelesscoherence
       end in
       let module ArchConfig = SemExtra.ConfigToArchConfig(Conf) in
       match arch with
