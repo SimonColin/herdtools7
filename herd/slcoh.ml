@@ -420,6 +420,7 @@ module Make (M:Cfg)
 
 
       let rec visit_write ex cs w kont res =
+        let _ = printf "write\n" in
         let s0 = E.EventSet.filter (fun x -> E.is_mem_store x && E.same_location x w) ex.added in
 
         let h = hb ex in
@@ -442,6 +443,7 @@ module Make (M:Cfg)
           ) s res0
 
       and revisit_reads ex cs w kont res =
+        let _ = printf "revisit\n" in
         let r0 = E.EventSet.filter (fun x -> E.is_mem_load x && E.same_location x w) ex.revisit in
         let r1 = E.EventRel.sequence (E.EventRel.singleton (w, w)) ex.mo in
         let r2 = E.EventRel.sequence r1 ex.rf in
@@ -452,12 +454,10 @@ module Make (M:Cfg)
         let r6 = E.EventRel.sequence r5 (added ex.added ex.po) in
         let r = E.EventSet.diff r0 (E.EventRel.codomain r6) in
 
-        let sbr = sbrf ex in
-
         (*        let r8 = E.EventRel.sequence sbr (E.EventRel.singleton (w, w)) in
         let r = E.EventSet.diff r7 (E.EventRel.domain r8) in*)
         (*        let r = r0 in*)
-        let kl0 = E.EventSet.fold
+        let kl = E.EventSet.fold
                     (fun e l ->
                       List.append
                         l
@@ -465,35 +465,15 @@ module Make (M:Cfg)
                            (fun x -> E.EventSet.add e x)
                            l))
                     r [E.EventSet.empty] in
-        let kl = List.filter
-                   (fun x -> not (E.EventRel.exists
-                                    (fun (y, z) -> E.EventSet.mem y x
-                                                   && E.EventSet.mem z x)
-                                    sbr))
-                   kl0 in
         List.fold_left
           (fun res1 k1 ->
             let nex = set_rf ex w k1 in
-            let nsbr = sbrf nex in
-            let g0 = E.EventRel.codomain (E.EventRel.sequence (E.EventRel.set_to_rln k1) nsbr) in
-            let g = E.EventSet.remove w g0 in
-            let nadded = E.EventSet.diff nex.added g in
-            let ntoadd = return_events nex.toadd g in
-            let nrevisit0 = E.EventSet.inter nadded ex.revisit in
-            let nrevisit1 = E.EventRel.set_to_rln k1 in
-            let nrevisit2 = E.EventRel.union nrevisit1 (E.EventRel.sequence nsbr nrevisit1) in
-            let nrevisit = E.EventSet.diff nrevisit0 (E.EventRel.domain nrevisit2) in
-
-(*            let nrevisit0 = E.EventSet.diff nex.revisit g in
-            let nrevisit1 = E.EventSet.diff nrevisit0 k1 in
-            let nrevisit = E.EventSet.inter nadded nrevisit1 in*)
-            let nrf = added nadded nex.rf in
-            let nmo = added nadded nex.mo in
-            visit {nex with added = nadded; toadd = ntoadd; revisit = nrevisit; mo = nmo; rf = nrf} cs kont res1
+            visit nex cs kont res1
           )
           res kl
 
       and visit_read (ex : exec) cs r kont res =
+        let _ = printf "read\n" in
         let w0 = E.EventSet.filter (fun x -> E.is_mem_store x && E.same_location r x) ex.added in
 
         let h = hb ex in
@@ -503,7 +483,7 @@ module Make (M:Cfg)
         let w4 = E.EventSet.diff w0 (E.EventRel.domain w3) in
         (*        let w = w0 in*)
 
-        let sbr = sbrf ex in
+(*        let sbr = sbrf ex in
         let rec aux w00 =
           let r0 = E.EventRel.set_to_rln w00 in
           let r1 = E.EventRel.sequences [r0;sbr;added ex.added ex.rmws] in
@@ -511,7 +491,8 @@ module Make (M:Cfg)
           if E.EventSet.is_empty r2
           then w00
           else aux r2 in
-        let w = aux w4 in
+        let w = aux w4 in*)
+        let w = w4 in
 
         let wx = try E.EventSet.choose w with Not_found -> E.EventSet.choose (E.EventSet.filter (fun x -> E.is_mem_store_init x && E.same_location x r) ex.added) in
         let ex0 = set_rf {ex with revisit = E.EventSet.add r ex.revisit} wx (E.EventSet.singleton r) in
@@ -519,14 +500,12 @@ module Make (M:Cfg)
         E.EventSet.fold
           (fun x res1 ->
             let nex = set_rf ex x (E.EventSet.singleton r) in
-            let nrevisit0 = E.EventRel.set_to_rln (E.EventSet.of_list [r;x]) in
-            let nrevisit1 = E.EventRel.sequence sbr nrevisit0 in
-            let nrevisit = E.EventSet.diff ex.revisit (E.EventRel.domain nrevisit1) in
-            visit {nex with revisit = nrevisit} cs kont res1
+            visit nex cs kont res1
           )
           (E.EventSet.remove wx w) res0
 
       and visit (ex : exec) cs kont res =
+        let _ = printf "visit\n" in
         let _ = assert (E.EventSet.is_empty (E.EventSet.diff ex.safe ex.added)) in
         let pending = pending ex in
         let a0 = extract_event ex.toadd ex.po ex.revisit pending in
