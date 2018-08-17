@@ -12,4 +12,4 @@ let sw = [(REL | ACQ_REL | SC)]; ([F]; sb)?; rs; rf; [R & (RLX | REL | ACQ | ACQ
 let hb = (sb | sw)+
 
 irreflexive hb; eco? as coherence
-irreflexive (myrmw; eco; ((rf \ myrmw) | rb)) as coherencermw
+irreflexive (hb?; myrmw; hb?; (mo | rf); eco?; (rb | (rf \ myrmw))) as coherencermw
